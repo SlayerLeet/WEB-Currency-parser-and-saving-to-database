@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="row">
+    {% for key, value in values.items() %}
+        <div class="col">
+            <p style="text-align: center;">{{key}}</p>
+            <p style="text-align: center;">{{value}}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}    
