@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 
+
 {% block body %}
+
+
 <div class="row">
-    {% for key, value in values.items() %}
+    {% for key, value in values.fiat.items() %}
         <div class="col">
             <p style="text-align: center;">{{key}}</p>
             <p style="text-align: center;">{{value}}</p>
         </div>
     {% endfor %}
 </div>
+
+
+<div class="row">
+    {% for key, value in values.cripta.items() %}
+        <div class="col">
+            <p style="text-align: center;">{{key}}</p>
+            <p style="text-align: center;">{{value}}</p>
+        </div>
+    {% endfor %}
+</div>
+
+
 {% endblock %}    
