@@ -1,16 +1,16 @@
 from flask import Flask
 from flask_restful import Api, Resource
-from parser_moex import norm
+from parser_moex import moex
 from parser_binance import cripta
 
 
 app = Flask(__name__)
 api = Api()
-
+values = {"fiat" : moex(), "cripta" : cripta()}
 
 class Main(Resource):
     def get(self):
-        return {"fiat" : norm(), "cripta" :  cripta()}
+        return values
 
 
 api.add_resource(Main, "/api/main")

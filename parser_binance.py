@@ -1,27 +1,8 @@
-# import websocket
-# import threading
-
-
-# class SocketConn(websocket.WebSocketApp):
-#     def __init__(self, url):
-#         super().__init__(url=url, on_open=self.on_open)
-        
-#         self.on_message = lambda ws, msg: self.message(msg)
-#         self.on_error = lambda ws, e: print("Error", e)
-#         self.on_close = lambda ws: print("Closing")
-        
-#         self.run_forever()
-        
-#     def on_open(self, ws):
-#         print("Websocket was opened")
-        
-#     def message(self, msg):
-#         print(msg)
-        
-
+from datetime import datetime
 def cripta():
-    return {"example_coin" + "/USDT" : 90}
-
-
-
-# threading.Thread(target = SocketConn, args = ('wss://stream.binance.com:9443/ws/btcusdt@aggTrade',)).start()
+    cripta_dict = {}
+    now = datetime.now()
+    formatted_string_ru = now.strftime("%d.%m.%Y %H:%M")
+    cripta_dict["USDT"] = {"price" : 100, "date" : formatted_string_ru}
+    return cripta_dict
+print(cripta())

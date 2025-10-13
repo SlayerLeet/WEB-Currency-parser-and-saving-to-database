@@ -1,27 +1,34 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block body %}
 
+<div class="graf"><h1>Графики в разработке</h1></div>
 
-{% block body %}
-
-
-<div class="row">
-    {% for key, value in values.fiat.items() %}
-        <div class="col">
-            <p style="text-align: center;">{{key}}</p>
-            <p style="text-align: center;">{{value}}</p>
-        </div>
+<div class="currency">
+  
+  <div class="row">
+    <div class="col">
+    <h3>Фиатные валюты</h3>
+    </div>
+    {% for name, value_dict in values.fiat.items() %}
+    <div class="col">
+      <p style="text-align: center">{{name}}</p>
+      {% for key, value in value_dict.items() %}
+        <p style="text-align: center">{{key}}</p>
+        <p style="text-align: center">{{value}}</p>
+      {% endfor %}  
+    </div>
     {% endfor %}
+  </div>
+
+  <div class="row">
+    {% for name, value_dict in values.cripta.items() %}
+    <div class="col">
+      <p style="text-align: center">{{name}}</p>
+      {% for key, value in value_dict.items() %}
+        <p style="text-align: center">{{key}} = {{value}}</p>
+      {% endfor %}  
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
-
-<div class="row">
-    {% for key, value in values.cripta.items() %}
-        <div class="col">
-            <p style="text-align: center;">{{key}}</p>
-            <p style="text-align: center;">{{value}}</p>
-        </div>
-    {% endfor %}
-</div>
-
-
-{% endblock %}    
+{% endblock %}

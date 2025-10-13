@@ -1,21 +1,35 @@
+import json
 import requests
-from bs4 import BeautifulSoup 
+import re
+from datetime import datetime
 
-def norm():
-    url = "https://www.finmarket.ru/currency/"
-    
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text,"lxml")
-    
-    values = {}
+def moex():
+    url = ("https://iss.moex.com/iss/engines/currency/markets/selt/securities.jsonp?"
+        "iss.only=securities,marketdata&"
+        "securities=CETS:USD000UTSTOM,CETS:EUR_RUB__TOM,CETS:CNYRUB_TOM,CETS:GBPRUB_TOM&"
+        "lang=ru&iss.meta=off&iss.json=extended&callback=angular.callbacks._gk")
+    data = requests.get(url)
 
-    block = soup.find_all('div', class_="fintool_button")
+
+    text = data.text[22:len(data.text)-1:]
+    text = re.sub(r'\n', "", text)
+    json_string = json.loads(text)
+
     
-    for val in block:
-        title = str(val.find('div', class_ = "title").text) + "/RUB"
-        value = str(val.find('div', class_ = "value").text)
-        values[title] = value
+    moex_dict = {}
+    for ss in json_string[1]['marketdata']:
+        if ss['SECID'] != "GBPRUB_TOM":
+            name = ss['SECID'][:3] + '/RUB'
+            now = datetime.now()
+            formatted_string_ru = now.strftime("%d.%m.%Y %H:%M")
+            if str(ss['CLOSEPRICE']) == "None":
+                price = ss['MARKETPRICE2']
+            else:
+                price = ss['CLOSEPRICE']
+        else:
+            continue
+        moex_dict[name] = {"price" : price, "date" : formatted_string_ru}
+
         
-    return values
-
-print(norm())
+    return moex_dict
+print(moex())

@@ -1,21 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-    <head>
-        <meta charset="utf-8" />
-        <title>Home page</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/my_css.css')}}">
-    </head>
-    <body>
-        <div class="header">
-                
-        </div>
-        
-
-        <div class="container">
-        {% block body %}{% endblock  %}
-        </div>
-
-
-        <script src="styles/js/bootstrap.bundle.min.js"></script>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Home page</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/my_css.css')}}"
+    />
+  </head>
+  <body>
+    <header>        
+      <img src= "{{url_for('static', filename='logo.png')}}" >
+      <nav> 
+        <ul>
+          <li><a href="#">Главная</a></li>
+          <li><a href="#">Вся валюта</a></li>
+          <li><a href="#">Фиатная валюта</a></li>
+          <li><a href="#">Крипта-валюта</a></li> 
+        </ul>
+      </nav>
+    </header>
+    <div class="container">{% block body %}{% endblock %} {% block grafix %}{% endblock %}</div>
+  </body>
 </html>
