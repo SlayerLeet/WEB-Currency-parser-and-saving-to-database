@@ -1,25 +1,24 @@
 {% extends "base.html" %} {% block body %}
 
-<div class="graf"><h1>Графики в разработке</h1></div>
-
-<div class="currency">
-  
   <div class="row">
     <div class="col">
-    <h3>Фиатные валюты</h3>
+    <h3>Moex</h3>
     </div>
     {% for name, value_dict in values.fiat.items() %}
     <div class="col">
       <p style="text-align: center">{{name}}</p>
       {% for key, value in value_dict.items() %}
-        <p style="text-align: center">{{key}}</p>
-        <p style="text-align: center">{{value}}</p>
+        <p style="text-align: center">{{key}} = {{value}}</p>
       {% endfor %}  
     </div>
     {% endfor %}
   </div>
 
+  
   <div class="row">
+    <div class="col">
+    <h3>Binance</h3>
+    </div>
     {% for name, value_dict in values.cripta.items() %}
     <div class="col">
       <p style="text-align: center">{{name}}</p>
@@ -29,6 +28,20 @@
     </div>
     {% endfor %}
   </div>
-</div>
+  
+  <div class="row">
+    <div class="col">
+    <h3>Okx</h3>
+    </div>
+    {% for name, value_dict in values.okx.items() %}
+    <div class="col">
+      <p style="text-align: center">{{name}}</p>
+      {% for key, value in value_dict.items() %}
+        <p style="text-align: center">{{key}} = {{value}}</p>
+      {% endfor %}  
+    </div>
+    {% endfor %}
+  </div>
+
 
 {% endblock %}
