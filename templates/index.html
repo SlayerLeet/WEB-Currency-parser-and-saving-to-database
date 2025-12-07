@@ -1,47 +1,38 @@
-{% extends "base.html" %} {% block body %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crypto Price Monitor</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+    <header>
+        <h1>Crypto Price Monitor</h1>
+    </header>
 
-  <div class="row">
-    <div class="col">
-    <h3>Moex</h3>
-    </div>
-    {% for name, value_dict in values.fiat.items() %}
-    <div class="col">
-      <p style="text-align: center">{{name}}</p>
-      {% for key, value in value_dict.items() %}
-        <p style="text-align: center">{{key}} = {{value}}</p>
-      {% endfor %}  
-    </div>
-    {% endfor %}
-  </div>
+    <main>
+        <section id="controls">
+            <button id="refreshBtn">Обновить цены</button>
+        </section>
 
-  
-  <div class="row">
-    <div class="col">
-    <h3>Binance</h3>
-    </div>
-    {% for name, value_dict in values.cripta.items() %}
-    <div class="col">
-      <p style="text-align: center">{{name}}</p>
-      {% for key, value in value_dict.items() %}
-        <p style="text-align: center">{{key}} = {{value}}</p>
-      {% endfor %}  
-    </div>
-    {% endfor %}
-  </div>
-  
-  <div class="row">
-    <div class="col">
-    <h3>Okx</h3>
-    </div>
-    {% for name, value_dict in values.okx.items() %}
-    <div class="col">
-      <p style="text-align: center">{{name}}</p>
-      {% for key, value in value_dict.items() %}
-        <p style="text-align: center">{{key}} = {{value}}</p>
-      {% endfor %}  
-    </div>
-    {% endfor %}
-  </div>
+        <section id="prices">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Пара</th>
+                        <th>Биржа</th>
+                        <th>Цена</th>
+                    </tr>
+                </thead>
+                <tbody id="priceTable">
+                    <!-- JS заполнит -->
+                </tbody>
+            </table>
+        </section>
+    </main>
 
-
-{% endblock %}
+    <script src="/static/app.js"></script>
+</body>
+</html>

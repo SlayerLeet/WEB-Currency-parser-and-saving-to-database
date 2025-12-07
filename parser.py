@@ -1,73 +1,93 @@
-import requests
-from json import loads
+import asyncio
+import httpx
+import re
+import json
 from datetime import datetime
 
-#------------------------------------------------------------------------------------------------------------------------------------------------
+# Валюты
+OKX_PAIRS = ["BTC-USDT-SWAP", "ETH-USDT-SWAP", "BNB-USDT-SWAP"]
+BINANCE_PAIRS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+BINANCE_NAMES = ["BTC/USDT", "ETH/USDT", "BNB/USDT"]
+MOEX_SECURITIES = ["CETS:USD000UTSTOM", "CETS:EUR_RUB__TOM", "CETS:CNYRUB_TOM"]
+
+#-------------------------------------------------------------------
 # OKX
+async def fetch_okx(start_id=0):
+    async with httpx.AsyncClient(timeout=10) as client:
+        tasks = [client.get(f'https://www.okx.com/api/v5/public/mark-price?instId={p}') for p in OKX_PAIRS]
+        responses = await asyncio.gather(*tasks)
 
-# Базовые данные:
-result_dict = {}
+    results = []
+    for i, resp in enumerate(responses):
+        data = resp.json()["data"][0]
+        name = data["instId"].replace("-", "/")[:8]
+        price = round(float(data["markPx"]), 4)
+        now = datetime.now().strftime("%d.%m.%Y %H:%M")
+        results.append({"id": start_id + i, "exchange": "okx", "name": name, "price": price, "date": now})
+    return results
 
-def okx_parse():
-    
-    # Ссылки на валюты:
-    btc_url = 'https://www.okx.com/api/v5/public/mark-price?instId=BTC-USDT-SWAP'
-    eth_url = 'https://www.okx.com/api/v5/public/mark-price?instId=ETH-USDT-SWAP'
-    bnb_url = 'https://www.okx.com/api/v5/public/mark-price?instId=BNB-USDT-SWAP'
-    
-    # Парсинг с okx:
-    for url in [btc_url, eth_url, bnb_url]:
-        req = requests.get(url).text
-        
-        raw_data = loads(req).get("data")
-        data = raw_data[0]
-        
-        raw_name = data.get('instId')
-        raw_name1 = raw_name.split('-')
-        name = raw_name1[0] + '/' + raw_name1[1]
-        price = data.get('markPx')
-        now = datetime.now()
-        formatted_string_ru = now.strftime("%d.%m.%Y %H:%M")
-        result_dict[name] = {"price" : price, "date" : formatted_string_ru}
-        
-    return result_dict
-
-# Валюты которые парсю
-
-# BTC-USDT-SWAP
-# ETH-USDT-SWAP
-# BNB-USDT-SWAP
-#------------------------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------
 # BINANCE
+async def fetch_binance(start_id=0):
+    async with httpx.AsyncClient(timeout=10) as client:
+        tasks = [client.get(f'https://api.binance.com/api/v3/avgPrice?symbol={p}') for p in BINANCE_PAIRS]
+        responses = await asyncio.gather(*tasks)
 
-# Базовые данные:
-binance_dict = {}
+    results = []
+    for i, resp in enumerate(responses):
+        price = round(float(resp.json()["price"]), 4)
+        now = datetime.now().strftime("%d.%m.%Y %H:%M")
+        results.append({"id": start_id + i, "exchange": "binance", "name": BINANCE_NAMES[i], "price": price, "date": now})
+    return results
 
+#-------------------------------------------------------------------
+# MOEX (синхронно, в отдельном потоке)
+def fetch_moex(start_id=0):
+    url = ("https://iss.moex.com/iss/engines/currency/markets/selt/securities.jsonp?"
+           "iss.only=securities,marketdata&"
+           "securities=" + ",".join(MOEX_SECURITIES) + "&"
+           "lang=ru&iss.meta=off&iss.json=extended&callback=angular.callbacks._gk")
+    r = httpx.get(url)
+    text = r.text[22:-1].replace("\n", "")
+    data = json.loads(text)
 
-def binance_parse():
-    
-    # Ссылки на валюты:
-    btc_url = 'https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT'
-    eth_url = 'https://api.binance.com/api/v3/avgPrice?symbol=ETHUSDT'
-    bnb_url = 'https://api.binance.com/api/v3/avgPrice?symbol=BNBUSDT'
-    
-    # Парсинг с okx:
-    for url, name in zip([btc_url, eth_url, bnb_url], ['BTC/USDT','ETH/USDT','BNB/USDT']):
-        req = requests.get(url).text
-        
-        price = loads(req).get("price")
+    results = []
+    id_counter = start_id
+    for ss in data[1]["marketdata"]:
+        if ss["SECID"] in ["GBPRUB_TOM"]:
+            continue
+        price = ss["CLOSEPRICE"] if ss["CLOSEPRICE"] is not None else ss["MARKETPRICE2"]
+        if isinstance(price, int):
+            price = float(round(price, 2))
+        now = datetime.now().strftime("%d.%m.%Y %H:%M")
+        results.append({"id": id_counter, "exchange": "moex", "name": ss["SECID"][:3]+"/RUB", "price": float(price), "date": now})
+        id_counter += 1
+    return results
 
-        now = datetime.now()
-        formatted_string_ru = now.strftime("%d.%m.%Y %H:%M")
-        binance_dict[name] = {"price" : price, "date" : formatted_string_ru}
-        
-    return binance_dict
+#-------------------------------------------------------------------
+# Главная функция — параллельный запуск всех бирж
+async def main_parse():
+    # MOEX запускаем в отдельном потоке, чтобы не блокировать asyncio
+    moex_task = asyncio.to_thread(fetch_moex, 0)
+    okx_task = fetch_okx(0)
+    binance_task = fetch_binance(len(OKX_PAIRS))
 
-print(okx_parse())
-print(binance_parse())
+    results = await asyncio.gather(moex_task, okx_task, binance_task)
 
-# BTC-USDT
-# ETH-USDT
-# BNB-USDT
-#------------------------------------------------------------------------------------------------------------------------------------------------
+    # Объединяем результаты
+    all_data = []
+    for part in results:
+        all_data.extend(part)
+
+    # Ставим сквозной id
+    for i, item in enumerate(all_data):
+        item["id"] = i
+
+    return all_data
+
+#-------------------------------------------------------------------
+# Тестовый запуск вне FastAPI
+if __name__ == "__main__":
+    data = asyncio.run(main_parse())
+    for item in data:
+        print(item)
